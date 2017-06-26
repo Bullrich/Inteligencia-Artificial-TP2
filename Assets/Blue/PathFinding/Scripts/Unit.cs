@@ -9,14 +9,6 @@ namespace Blue.Pathfinding
         Vector3[] path;
         int targetIndex;
 
-        Animator animator;
-
-        void Start()
-        {
-            ///PathRequestManager.RequestPath(transform.position,target.position, OnPathFound);
-            animator = GetComponent<Animator>();
-        }
-
         public void OnPathFound(Vector3[] newPath, bool pathSuccessful)
         {
             if (pathSuccessful)
@@ -44,9 +36,7 @@ namespace Blue.Pathfinding
                 }
 
                 transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
-                animator.SetBool("travelling", true);
                 yield return null;
-                animator.SetBool("travelling", false);
             }
         }
 
@@ -54,6 +44,22 @@ namespace Blue.Pathfinding
         public void NavigateToPoint(Vector3 pathStart, Vector3 pathEnd)
         {
             PathRequestManager.RequestPath(pathStart, pathEnd, OnPathFound);
+        }
+
+        void Update()
+        {
+            if (Input.GetMouseButtonDown(0))
+         {
+             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+     RaycastHit hit;
+     if (Physics.Raycast(ray, out hit))
+     {
+         //hit.collider.GetComponent<Renderer>().material.color = Color.red;
+         Debug.Log(hit.point);
+         NavigateToPoint(transform.position,hit.point);
+     }
+             
+         }
         }
 
         public void OnDrawGizmos()

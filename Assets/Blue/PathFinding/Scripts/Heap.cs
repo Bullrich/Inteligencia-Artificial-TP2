@@ -10,6 +10,7 @@ namespace Blue.Pathfinding
         T[] items;
         int currentItemCount;
 
+        ///<summary>Cheating some C++ into C# (Python pasion)</summary>
         public Heap(int maxHeapSize)
         {
             items = new T[maxHeapSize];
@@ -117,9 +118,6 @@ namespace Blue.Pathfinding
             itemA.HeapIndex = itemB.HeapIndex;
             itemB.HeapIndex = itemAIndex;
         }
-
-
-
     }
 
     public interface IHeapItem<T> : IComparable<T>

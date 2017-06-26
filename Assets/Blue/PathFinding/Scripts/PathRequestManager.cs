@@ -5,9 +5,9 @@ using System;
 
 namespace Blue.Pathfinding
 {
+    [RequireComponent(typeof(Pathfinding))]
     public class PathRequestManager : MonoBehaviour
     {
-
         Queue<PathRequest> pathRequestQueue = new Queue<PathRequest>();
         PathRequest currentPathRequest;
 

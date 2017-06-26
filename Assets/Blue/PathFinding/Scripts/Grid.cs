@@ -10,7 +10,7 @@ namespace Blue.Pathfinding
         public bool displayGridGizmos;
         public LayerMask unwalkableMask;
         public Vector2 gridWorldSize;
-        public float nodeRadius;
+        public float nodeRadius, heightLimit;
         public TerrainType[] walkableRegions;
         LayerMask walkableMask;
         Dictionary<int, int> walkableRegionsDictionary = new Dictionary<int, int>();
@@ -53,6 +53,13 @@ namespace Blue.Pathfinding
                 for (int y = 0; y < gridSizeY; y++)
                 {
                     Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
+                    int rayLengthMeters = 45;
+                    RaycastHit hitInfo;
+
+                    if (Physics.Raycast(worldPoint, Vector3.down, out hitInfo, rayLengthMeters))
+                        worldPoint = hitInfo.point;
+                    else
+                        throw new System.Exception(string.Format("Point {0}, {1} didn't hit anything when raycasting down", gridSizeX, gridSizeY));
                     bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius, unwalkableMask));
 
                     int movementPenalty = 0;
@@ -87,7 +94,8 @@ namespace Blue.Pathfinding
                     int checkX = node.gridX + x;
                     int checkY = node.gridY + y;
 
-                    if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY)
+                    if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY &&
+                        Mathf.Abs(node.worldPosition.y - grid[checkX, checkY].worldPosition.y) < heightLimit)
                     {
                         neighbours.Add(grid[checkX, checkY]);
                     }
@@ -118,7 +126,28 @@ namespace Blue.Pathfinding
                 foreach (Node n in grid)
                 {
                     Gizmos.color = (n.walkable) ? Color.white : Color.red;
-                    Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+                    //Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+                    Gizmos.DrawWireSphere(n.worldPosition, .25f);
+                    var neighboors = GetNeighbours(n);
+                    foreach (Node neighbor in neighboors)
+                    {
+                        Gizmos.color = Color.blue;
+                        Gizmos.DrawLine(n.worldPosition, neighbor.worldPosition);
+                    }
+                }
+            }
+            if (!Application.isPlaying && displayGridGizmos)
+            {
+                Vector3 worldBottomLeft = transform.position - Vector3.right * gridWorldSize.x / 2 - Vector3.forward * gridWorldSize.y / 2;
+                //print(worldBottomLeft);
+                for (int x = 0; x < gridWorldSize.x; x++)
+                {
+                    for (int y = 0; y < gridWorldSize.y; y++)
+                    {
+                        Gizmos.color = Color.blue;
+                        Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius * 2) + nodeRadius) + Vector3.forward * (y * (nodeRadius * 2) + nodeRadius);
+                        Gizmos.DrawWireSphere(worldPoint, .25f);
+                    }
                 }
             }
         }

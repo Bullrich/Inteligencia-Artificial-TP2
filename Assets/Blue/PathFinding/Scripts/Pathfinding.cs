@@ -94,7 +94,8 @@ namespace Blue.Pathfinding
             return waypoints;
 
         }
-
+        
+        // Theta
         Vector3[] SimplifyPath(List<Node> path)
         {
             List<Vector3> waypoints = new List<Vector3>();
