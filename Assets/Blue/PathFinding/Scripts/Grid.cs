@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// @Bullrich. March 2016
+
 namespace Blue.Pathfinding
 {
     public class Grid : MonoBehaviour

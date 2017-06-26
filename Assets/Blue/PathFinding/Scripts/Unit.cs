@@ -15,8 +15,8 @@ namespace Blue.Pathfinding
             {
                 path = newPath;
                 targetIndex = 0;
-                StopCoroutine("FollowPath");
-                StartCoroutine("FollowPath");
+                StopCoroutine(FollowPath());
+                StartCoroutine(FollowPath());
             }
         }
 
@@ -49,17 +49,17 @@ namespace Blue.Pathfinding
         void Update()
         {
             if (Input.GetMouseButtonDown(0))
-         {
-             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-     RaycastHit hit;
-     if (Physics.Raycast(ray, out hit))
-     {
-         //hit.collider.GetComponent<Renderer>().material.color = Color.red;
-         Debug.Log(hit.point);
-         NavigateToPoint(transform.position,hit.point);
-     }
-             
-         }
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
+                {
+                    //hit.collider.GetComponent<Renderer>().material.color = Color.red;
+                    Debug.Log(hit.point);
+                    NavigateToPoint(transform.position, hit.point);
+                }
+
+            }
         }
 
         public void OnDrawGizmos()
