@@ -59,7 +59,7 @@ namespace Blue.Pathfinding
                     RaycastHit hitInfo;
 
                     if (Physics.Raycast(worldPoint, Vector3.down, out hitInfo, rayLengthMeters))
-                        worldPoint = hitInfo.point;
+                        worldPoint = hitInfo.point + new Vector3(0, 1, 0);
                     else
                         throw new System.Exception(string.Format("Point {0}, {1} didn't hit anything when raycasting down", gridSizeX, gridSizeY));
                     bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius, unwalkableMask));
@@ -107,19 +107,23 @@ namespace Blue.Pathfinding
             return neighbours;
         }
 
-
         public Node NodeFromWorldPoint(Vector3 worldPosition)
         {
-            float percentX = (worldPosition.x + gridWorldSize.x / 2) / gridWorldSize.x;
-            float percentY = (worldPosition.z + gridWorldSize.y / 2) / gridWorldSize.y;
+            float percentX = (transform.position.x + worldPosition.x + gridWorldSize.x / 2) / gridWorldSize.x;
+            float percentY = (transform.position.z + worldPosition.z + gridWorldSize.y / 2) / gridWorldSize.y;
             percentX = Mathf.Clamp01(percentX);
             percentY = Mathf.Clamp01(percentY);
 
             int x = Mathf.RoundToInt((gridSizeX - 1) * percentX);
             int y = Mathf.RoundToInt((gridSizeY - 1) * percentY);
+            print(grid[x, y].worldPosition);
             return grid[x, y];
         }
 
+        private void GenerateRandomUniquePath()
+        {
+
+        }
         void OnDrawGizmos()
         {
             Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
@@ -147,7 +151,7 @@ namespace Blue.Pathfinding
                     for (int y = 0; y < gridWorldSize.y; y++)
                     {
                         Gizmos.color = Color.blue;
-                        Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius * 2) + nodeRadius) + Vector3.forward * (y * (nodeRadius * 2) + nodeRadius);
+                        Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius) + nodeRadius) + Vector3.forward * (y * (nodeRadius) + nodeRadius);
                         Gizmos.DrawWireSphere(worldPoint, .25f);
                     }
                 }

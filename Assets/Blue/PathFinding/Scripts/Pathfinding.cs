@@ -23,7 +23,6 @@ namespace Blue.Pathfinding
 
         IEnumerator FindPath(Vector3 startPos, Vector3 targetPos)
         {
-
             Vector3[] waypoints = new Vector3[0];
             bool pathSuccess = false;
 
@@ -94,8 +93,8 @@ namespace Blue.Pathfinding
             return waypoints;
 
         }
-        
-        // Theta
+
+        // Kind of theta fix. No funca con alturas, pero en un plano hace un efecto muuuy similar
         Vector3[] SimplifyPath(List<Node> path)
         {
             List<Vector3> waypoints = new List<Vector3>();

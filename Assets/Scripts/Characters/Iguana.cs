@@ -33,9 +33,11 @@ public class Iguana : MonoBehaviour
 
     Vector3[] path;
     public int targetIndex = 0;
+    public Vector3 currentTarget;
 
     Vector3 _startPatrol, _endPatrol;
-    bool _hasRequestedPath = false;
+    bool _hasRequestedPath = false,
+    patrollingInversed;
 
 
 
@@ -45,13 +47,13 @@ public class Iguana : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
         _los = GetComponent<LineOfSight>();
+        currentTarget = transform.position;
         Invoke("StartNow", 1f);
     }
 
     private void StartNow()
     {
-		Vector3 targetPosition = transform.position + new Vector3(2, 0,0);
-		print(targetPosition);
+        Vector3 targetPosition = new Vector3(15.35f, 6.3f, 12f);
         GetPatrolRoute(targetPosition);
     }
 
@@ -87,6 +89,23 @@ public class Iguana : MonoBehaviour
 
     }
 
+    void MoveToPoint(Vector3 targetPosition)
+    {
+        if (targetPosition == transform.position)
+            return;
+
+        Vector3 moveDiff = targetPosition - transform.position;
+        Vector3 moveDir = moveDiff.normalized * _maxSpeed * Time.deltaTime;
+        if (moveDir.sqrMagnitude < moveDiff.sqrMagnitude)
+        {
+            _controller.Move(moveDir);
+        }
+        else
+        {
+            _controller.Move(moveDiff);
+        }
+    }
+
     void Scream()
     {
         _animator.SetTrigger("Hit");
@@ -108,8 +127,8 @@ public class Iguana : MonoBehaviour
             targetIndex = 0;
             // Move to path
             currentState = Input.TargetNotSeen;
-			foreach(Vector3 vec in newPath)
-			print(vec);
+            // foreach (Vector3 vec in newPath)
+            //     print(vec);
         }
         _hasRequestedPath = false;
     }
@@ -127,6 +146,7 @@ public class Iguana : MonoBehaviour
         {
             case Input.TargetNotSeen:
                 Patrolling();
+                //delta = Vector3.one;
                 break;
         }
 
@@ -136,7 +156,8 @@ public class Iguana : MonoBehaviour
             var motionMagnitude = _maxSpeed;
 
             //ALUM: Truncar la velocidad a una velocidad máxima y animar con la velocidad real (en vez de _maxSpeed)
-
+            transform.forward = currentTarget;
+            _controller.Move(Vector3.forward * _maxSpeed);
 
             _animator.SetFloat("Forward", motionMagnitude);
         }
@@ -150,25 +171,23 @@ public class Iguana : MonoBehaviour
 
     private void Patrolling()
     {
-        if (Vector3.Distance(path[targetIndex], transform.position) > .3f)
+        if (targetIndex >= path.Length || targetIndex < 0)
+        {
+            patrollingInversed = !patrollingInversed;
+            targetIndex += (patrollingInversed ? -1 : 1);
+        }
+        else if (Vector3.Distance(path[targetIndex], transform.position) > 1)
         {
             var offset = path[targetIndex] - transform.position;
             if (offset.magnitude > .1f)
             {
-                offset = offset.normalized * _maxSpeed;
-                _controller.Move(offset * Time.deltaTime);
+                currentTarget = path[targetIndex];
+                MoveToPoint(currentTarget);
+                transform.LookAt(currentTarget);
             }
         }
-        else if (path.Length < targetIndex)
-            targetIndex++;
-        else if (!_hasRequestedPath)
-        {
-            // Restart the route
-            if (Vector3.Distance(_startPatrol, transform.position) < 1)
-                GetPatrolRoute(_endPatrol);
-            else
-                GetPatrolRoute(_startPatrol);
-        }
+        else
+            targetIndex += (patrollingInversed ? -1 : 1);
     }
 
     void OnDrawGizmos()
@@ -180,6 +199,20 @@ public class Iguana : MonoBehaviour
 
         //ALUM: Dibujar la ruta de patrullaje o la que se está siguiendo de momento. Utilizar "offset" para no superponer los gizmos.
 
+        if (path != null)
+        {
+            for (int i = 0; i < path.Length; i++)
+            {
+                Gizmos.color = (i ==targetIndex ? Color.red:Color.black);
+                Gizmos.DrawCube(path[i], Vector3.one);
+
+                if (i == targetIndex)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(transform.position, path[i]);
+                }
+            }
+        }
 
     }
 
