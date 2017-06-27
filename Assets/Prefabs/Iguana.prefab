@@ -944,8 +944,8 @@ GameObject:
   - component: {fileID: 13680460}
   - component: {fileID: 14378186}
   - component: {fileID: 11487790}
-  - component: {fileID: 11421158}
   - component: {fileID: 11455110}
+  - component: {fileID: 114542127168631122}
   m_Layer: 9
   m_Name: Iguana
   m_TagString: Untagged
@@ -1695,7 +1695,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 159230}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.76833, y: 11.258371, z: 6.7039843}
+  m_LocalPosition: {x: -7.38, y: 20.32, z: -5.24}
   m_LocalScale: {x: 5.380891, y: 5.3808928, z: 5.3808928}
   m_Children:
   - {fileID: 483930}
@@ -3017,20 +3017,6 @@ Light:
   m_BounceIntensity: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &11421158
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 159230}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2058a0197601abb43bc7d15417778b83, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sightDistance: 7
-  sightAngle: 60
-  target: {fileID: 0}
 --- !u!114 &11455110
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3066,7 +3052,8 @@ MonoBehaviour:
   - 2
   - 1
   rank: 0
-  _maxSpeed: 0
+  _maxSpeed: 5
+  _gizmoColor: {r: 1, g: 0.5735294, b: 0.5735294, a: 1}
 --- !u!136 &13680460
 CapsuleCollider:
   m_ObjectHideFlags: 1
@@ -3248,3 +3235,22 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 159230}
   m_IsPrefabParent: 1
+--- !u!114 &114542127168631122
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 159230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e23aa05772baa324ba79d38a11694e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 7
+  viewAngle: 60
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 2048
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 256

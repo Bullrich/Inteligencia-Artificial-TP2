@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Blue.Pathfinding;
+using Blue.Fov;
 
+[RequireComponent(typeof(FieldOfView))]
 public class Iguana : MonoBehaviour
 {
 
@@ -23,22 +25,20 @@ public class Iguana : MonoBehaviour
     public float _maxSpeed;
 
     int _iguanaIndex;
-    Color _gizmoColor;
-
-    LineOfSight _los;
+    public Color _gizmoColor;
     CharacterController _controller;
     Animator _animator;
 
-    private Input currentState;
+    private Input currentState = Input.TargetNotSeen;
 
     Vector3[] path;
-    public int targetIndex = 0;
-    public Vector3 currentTarget;
+    private int targetIndex = 0;
+    private Vector3 currentTarget;
 
     Vector3 _startPatrol, _endPatrol;
-    bool _hasRequestedPath = false,
-    patrollingInversed;
+    bool patrollingInversed;
 
+    private FieldOfView _fov;
 
 
     protected void Start()
@@ -46,11 +46,14 @@ public class Iguana : MonoBehaviour
         Debug.Assert(helmetPrefabs.Length == rankProbability.Length);
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
-        _los = GetComponent<LineOfSight>();
+        _fov = GetComponent<FieldOfView>();
         currentTarget = transform.position;
+        _fov.ContinueFOV();
         Invoke("StartNow", 1f);
     }
 
+    // Need a pause to allow the grid to be build
+    // Here would go a loading screen
     private void StartNow()
     {
         Vector3 targetPosition = new Vector3(15.35f, 6.3f, 12f);
@@ -116,7 +119,6 @@ public class Iguana : MonoBehaviour
     private void GetPatrolRoute(Vector3 targetPosition)
     {
         PathRequestManager.RequestPath(transform.position, targetPosition, OnPathFound);
-        _hasRequestedPath = true;
     }
 
     public void OnPathFound(Vector3[] newPath, bool pathSuccessful)
@@ -130,15 +132,14 @@ public class Iguana : MonoBehaviour
             // foreach (Vector3 vec in newPath)
             //     print(vec);
         }
-        _hasRequestedPath = false;
     }
 
     // Update is called once per frame
     protected void Update()
     {
         //ALUM: Alimentar la FSM con sensores
-
-
+        if (_fov.hasTargetInView())
+            currentState = Input.TargetSeen;
 
         //ALUM: Moverse acorde al estado.
         Vector3 delta = Vector3.zero;
@@ -147,6 +148,17 @@ public class Iguana : MonoBehaviour
             case Input.TargetNotSeen:
                 Patrolling();
                 //delta = Vector3.one;
+                break;
+            case Input.TargetSeen:
+                Transform target = _fov.getTarget();
+                if (target != null)
+                    MoveToPoint(target.position);
+                else
+                    currentState = Input.TargetNotSeen;
+                break;
+            case Input.FollowNoise:
+                break;
+            case Input.ReachedDestination:
                 break;
         }
 
@@ -171,6 +183,8 @@ public class Iguana : MonoBehaviour
 
     private void Patrolling()
     {
+        if (path == null)
+            return;
         if (targetIndex >= path.Length || targetIndex < 0)
         {
             patrollingInversed = !patrollingInversed;
@@ -203,12 +217,12 @@ public class Iguana : MonoBehaviour
         {
             for (int i = 0; i < path.Length; i++)
             {
-                Gizmos.color = (i ==targetIndex ? Color.red:Color.black);
+                Gizmos.color = (i == targetIndex ? _gizmoColor : Color.black);
                 Gizmos.DrawCube(path[i], Vector3.one);
 
                 if (i == targetIndex)
                 {
-                    Gizmos.color = Color.red;
+                    Gizmos.color = _gizmoColor;
                     Gizmos.DrawLine(transform.position, path[i]);
                 }
             }
