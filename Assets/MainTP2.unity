@@ -1727,15 +1727,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 855e868289c1843b09c78e143b2b1288, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  displayGridGizmos: 0
+  displayGridGizmos: 1
   unwalkableMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   gridWorldSize: {x: 75, y: 75}
-  nodeRadius: 0.5
+  nodeRadius: 1
   heightLimit: 0.8
   walkableRegions: []
-  debugPos: {x: 0, y: 0, z: 0}
 --- !u!4 &425011250
 Transform:
   m_ObjectHideFlags: 0
@@ -4976,6 +4975,10 @@ Prefab:
       propertyPath: m_RootOrder
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: b8beb0b1c5ecc86428ecf58aa1c1a42d, type: 2}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: b8beb0b1c5ecc86428ecf58aa1c1a42d, type: 2}
   m_IsPrefabParent: 0
@@ -5518,6 +5521,22 @@ Transform:
 Transform:
   m_PrefabParentObject: {fileID: 427390, guid: 318638722a15287499cf1f43a5b285e3, type: 2}
   m_PrefabInternal: {fileID: 1338649712}
+--- !u!1 &1083571296 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 100002, guid: b8beb0b1c5ecc86428ecf58aa1c1a42d, type: 2}
+  m_PrefabInternal: {fileID: 944130115}
+--- !u!135 &1083571297
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1083571296}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 15.8
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1085200239
 GameObject:
   m_ObjectHideFlags: 0
@@ -7927,7 +7946,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18ff643a4dc3c4c4499359ae0b230fc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  map: {fileID: 1706121796}
   farmer: {fileID: 437442142}
   iguanaCount: 20
   iguanaPrefab: {fileID: 11487790, guid: 1e2b7f185e18f9142b87059434d92525, type: 2}
@@ -8394,7 +8412,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1706121797}
-  - component: {fileID: 1706121796}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -8402,26 +8419,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1706121796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1706121795}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01a2d92f1c9aa9b418bdc9831ebbb03d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  width: 18
-  height: 18
-  startX: -34.8
-  startZ: -36
-  raycastStartY: 40
-  cellSize: 4
-  maxAngle: 20
-  safetyRadius: 20
-  nodeOffset: {x: 0, y: 1, z: 0}
 --- !u!4 &1706121797
 Transform:
   m_ObjectHideFlags: 0

@@ -59,25 +59,27 @@ namespace Blue.Pathfinding
                     RaycastHit hitInfo;
 
                     if (Physics.Raycast(worldPoint, Vector3.down, out hitInfo, rayLengthMeters))
-                        worldPoint = hitInfo.point + new Vector3(0, 1, 0);
+                    {
+                        worldPoint = hitInfo.point;
+                        bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius, unwalkableMask));
+                        worldPoint += new Vector3(0, 1, 0);
+
+                        int movementPenalty = 0;
+
+                        if (walkable)
+                        {
+                            Ray ray = new Ray(worldPoint + Vector3.up * 50, Vector3.down);
+                            RaycastHit hit;
+                            if (Physics.Raycast(ray, out hit, 100, walkableMask))
+                            {
+                                walkableRegionsDictionary.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
+                            }
+                        }
+
+                        grid[x, y] = new Node(walkable, worldPoint, x, y, movementPenalty);
+                    }
                     else
                         throw new System.Exception(string.Format("Point {0}, {1} didn't hit anything when raycasting down", gridSizeX, gridSizeY));
-                    bool walkable = !(Physics.CheckSphere(worldPoint, nodeRadius, unwalkableMask));
-
-                    int movementPenalty = 0;
-
-                    if (walkable)
-                    {
-                        Ray ray = new Ray(worldPoint + Vector3.up * 50, Vector3.down);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, 100, walkableMask))
-                        {
-                            walkableRegionsDictionary.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
-                        }
-                    }
-
-
-                    grid[x, y] = new Node(walkable, worldPoint, x, y, movementPenalty);
                 }
             }
         }
@@ -116,7 +118,6 @@ namespace Blue.Pathfinding
 
             int x = Mathf.RoundToInt((gridSizeX - 1) * percentX);
             int y = Mathf.RoundToInt((gridSizeY - 1) * percentY);
-            print(grid[x, y].worldPosition);
             return grid[x, y];
         }
 
@@ -131,14 +132,20 @@ namespace Blue.Pathfinding
             {
                 foreach (Node n in grid)
                 {
-                    Gizmos.color = (n.walkable) ? Color.white : Color.red;
-                    //Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f));
-                    Gizmos.DrawWireSphere(n.worldPosition, .25f);
-                    var neighboors = GetNeighbours(n);
-                    foreach (Node neighbor in neighboors)
+                    if (n.walkable)
                     {
-                        Gizmos.color = Color.blue;
-                        Gizmos.DrawLine(n.worldPosition, neighbor.worldPosition);
+
+                        Gizmos.color = (n.walkable) ? Color.white : Color.red;
+                        Gizmos.DrawWireSphere(n.worldPosition, .25f);
+                        var neighboors = GetNeighbours(n);
+                        foreach (Node neighbor in neighboors)
+                        {
+                            if (neighbor.walkable)
+                            {
+                                Gizmos.color = Color.blue;
+                                Gizmos.DrawLine(n.worldPosition, neighbor.worldPosition);
+                            }
+                        }
                     }
                 }
             }

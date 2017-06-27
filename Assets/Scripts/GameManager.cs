@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 public class GameManager : MonoBehaviour {
-	public Map map;
 	public Farmer farmer;
 	public int iguanaCount = 20;
 	public Iguana iguanaPrefab;
@@ -18,8 +17,6 @@ public class GameManager : MonoBehaviour {
 	void Start () {
 		Debug.Assert(FindObjectsOfType<GameManager>().Length == 1);
 		instance = this;
-
-		map.Build(farmer.transform.position);
 
 		CreateIguanas();
 	}
