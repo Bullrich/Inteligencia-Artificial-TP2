@@ -78,6 +78,53 @@ namespace Blue.Pathfinding
 
         }
 
+        public bool FoundIfAccesible(Node startNode,Node targetNode){
+            Vector3[] waypoints = new Vector3[0];
+            bool pathSuccess = false;
+
+
+            if (startNode.walkable && targetNode.walkable)
+            {
+                Heap<Node> openSet = new Heap<Node>(grid.MaxSize);
+                HashSet<Node> closedSet = new HashSet<Node>();
+                openSet.Add(startNode);
+
+                while (openSet.Count > 0)
+                {
+                    Node currentNode = openSet.RemoveFirst();
+                    closedSet.Add(currentNode);
+
+                    if (currentNode == targetNode)
+                    {
+                        pathSuccess = true;
+                        break;
+                    }
+
+                    foreach (Node neighbour in grid.GetNeighbours(currentNode))
+                    {
+                        if (!neighbour.walkable || closedSet.Contains(neighbour))
+                        {
+                            continue;
+                        }
+
+                        int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenaly;
+                        if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+                        {
+                            neighbour.gCost = newMovementCostToNeighbour;
+                            neighbour.hCost = GetDistance(neighbour, targetNode);
+                            neighbour.parent = currentNode;
+
+                            if (!openSet.Contains(neighbour))
+                                openSet.Add(neighbour);
+                            else
+                                openSet.UpdateItem(neighbour);
+                        }
+                    }
+                }
+            }
+            return pathSuccess;
+        }
+
         Vector3[] RetracePath(Node startNode, Node endNode)
         {
             List<Node> path = new List<Node>();

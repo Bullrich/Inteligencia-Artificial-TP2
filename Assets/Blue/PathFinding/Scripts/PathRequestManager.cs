@@ -25,7 +25,6 @@ namespace Blue.Pathfinding
         /// <summary>Request a way of traveling from one point to another</summary>
         public static void RequestPath(Vector3 pathStart, Vector3 pathEnd, Action<Vector3[], bool> callback)
         {
-            print(pathStart + " | " + pathEnd);
             PathRequest newRequest = new PathRequest(pathStart, pathEnd, callback);
             instance.pathRequestQueue.Enqueue(newRequest);
             instance.TryProcessNext();
@@ -39,6 +38,10 @@ namespace Blue.Pathfinding
                 isProcessingPath = true;
                 pathfinding.StartFindPath(currentPathRequest.pathStart, currentPathRequest.pathEnd);
             }
+        }
+
+        public void FindIfAccesible(){
+            
         }
 
         public void FinishedProcessingPath(Vector3[] path, bool success)

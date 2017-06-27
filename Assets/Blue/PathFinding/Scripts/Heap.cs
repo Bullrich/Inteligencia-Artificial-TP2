@@ -4,6 +4,7 @@ using System;
 
 namespace Blue.Pathfinding
 {
+    // Aguante C++ vieja
     public class Heap<T> where T : IHeapItem<T>
     {
 

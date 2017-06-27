@@ -35,6 +35,7 @@ namespace Blue.Pathfinding
             }
 
             CreateGrid();
+            ValidatePaths();
         }
 
         public int MaxSize
@@ -121,9 +122,15 @@ namespace Blue.Pathfinding
             return grid[x, y];
         }
 
-        private void GenerateRandomUniquePath()
+        private void ValidatePaths()
         {
-
+            Node startNode = grid[Mathf.RoundToInt(grid.GetLength(0) / 2), Mathf.RoundToInt(grid.GetLength(1)/2)];
+            Pathfinding path = GetComponent<Pathfinding>();
+            foreach (Node _n in grid)
+            {
+                if (startNode != _n)
+                    _n.walkable = path.FoundIfAccesible(startNode, _n);
+            }
         }
         void OnDrawGizmos()
         {
