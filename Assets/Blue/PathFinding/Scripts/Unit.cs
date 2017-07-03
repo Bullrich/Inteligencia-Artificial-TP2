@@ -55,12 +55,13 @@ namespace Blue.Pathfinding
                 if (Physics.Raycast(ray, out hit))
                 {
                     //hit.collider.GetComponent<Renderer>().material.color = Color.red;
-                    Debug.Log(hit.point);
-                    NavigateToPoint(transform.position, hit.point);
+                    //NavigateToPoint(transform.position, hit.point);
+                    PathRequestManager.RequestRandomPath(transform.position, pathLenght, OnPathFound);
                 }
 
             }
         }
+        public int pathLenght = 5;
 
         public void OnDrawGizmos()
         {

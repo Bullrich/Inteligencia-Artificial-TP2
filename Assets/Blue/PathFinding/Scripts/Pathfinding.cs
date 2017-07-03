@@ -18,56 +18,25 @@ namespace Blue.Pathfinding
 
         public void StartFindPath(Vector3 startPos, Vector3 targetPos)
         {
-            StartCoroutine(FindPath(startPos, targetPos));
+            Node startNode = convertPosToNode(startPos);
+            Node targetNode = convertPosToNode(targetPos);
+            StartCoroutine(FindPath(startNode, targetNode));
         }
 
-        IEnumerator FindPath(Vector3 startPos, Vector3 targetPos)
+        public void StartFindPath(Node startNode, Node targetNode)
+        {
+            StartCoroutine(FindPath(startNode, targetNode));
+        }
+
+        IEnumerator FindPath(Node startNode, Node targetNode)
         {
             Vector3[] waypoints = new Vector3[0];
             bool pathSuccess = false;
 
-            Node startNode = grid.NodeFromWorldPoint(startPos);
-            Node targetNode = grid.NodeFromWorldPoint(targetPos);
-
 
             if (startNode.walkable && targetNode.walkable)
             {
-                Heap<Node> openSet = new Heap<Node>(grid.MaxSize);
-                HashSet<Node> closedSet = new HashSet<Node>();
-                openSet.Add(startNode);
-
-                while (openSet.Count > 0)
-                {
-                    Node currentNode = openSet.RemoveFirst();
-                    closedSet.Add(currentNode);
-
-                    if (currentNode == targetNode)
-                    {
-                        pathSuccess = true;
-                        break;
-                    }
-
-                    foreach (Node neighbour in grid.GetNeighbours(currentNode))
-                    {
-                        if (!neighbour.walkable || closedSet.Contains(neighbour))
-                        {
-                            continue;
-                        }
-
-                        int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenaly;
-                        if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
-                        {
-                            neighbour.gCost = newMovementCostToNeighbour;
-                            neighbour.hCost = GetDistance(neighbour, targetNode);
-                            neighbour.parent = currentNode;
-
-                            if (!openSet.Contains(neighbour))
-                                openSet.Add(neighbour);
-                            else
-                                openSet.UpdateItem(neighbour);
-                        }
-                    }
-                }
+                CalculatePathFinding(startNode, targetNode, ref pathSuccess);
             }
             yield return null;
             if (pathSuccess)
@@ -78,49 +47,59 @@ namespace Blue.Pathfinding
 
         }
 
-        public bool FoundIfAccesible(Node startNode,Node targetNode){
+        private void CalculatePathFinding(Node startNode, Node targetNode, ref bool pathSuccess)
+        {
+            Heap<Node> openSet = new Heap<Node>(grid.MaxSize);
+            HashSet<Node> closedSet = new HashSet<Node>();
+            openSet.Add(startNode);
+
+            while (openSet.Count > 0)
+            {
+                Node currentNode = openSet.RemoveFirst();
+                closedSet.Add(currentNode);
+
+                if (currentNode == targetNode)
+                {
+                    pathSuccess = true;
+                    break;
+                }
+
+                foreach (Node neighbour in grid.GetNeighbours(currentNode))
+                {
+                    if (!neighbour.walkable || closedSet.Contains(neighbour))
+                    {
+                        continue;
+                    }
+
+                    int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenaly;
+                    if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+                    {
+                        neighbour.gCost = newMovementCostToNeighbour;
+                        neighbour.hCost = GetDistance(neighbour, targetNode);
+                        neighbour.parent = currentNode;
+
+                        if (!openSet.Contains(neighbour))
+                            openSet.Add(neighbour);
+                        else
+                            openSet.UpdateItem(neighbour);
+                    }
+                }
+            }
+        }
+
+        public bool FoundIfAccesible(Vector3 startPos, Vector3 endPos)
+        {
+            return FoundIfAccesible(convertPosToNode(startPos), convertPosToNode(endPos));
+        }
+
+        public bool FoundIfAccesible(Node startNode, Node targetNode)
+        {
             Vector3[] waypoints = new Vector3[0];
             bool pathSuccess = false;
 
-
             if (startNode.walkable && targetNode.walkable)
             {
-                Heap<Node> openSet = new Heap<Node>(grid.MaxSize);
-                HashSet<Node> closedSet = new HashSet<Node>();
-                openSet.Add(startNode);
-
-                while (openSet.Count > 0)
-                {
-                    Node currentNode = openSet.RemoveFirst();
-                    closedSet.Add(currentNode);
-
-                    if (currentNode == targetNode)
-                    {
-                        pathSuccess = true;
-                        break;
-                    }
-
-                    foreach (Node neighbour in grid.GetNeighbours(currentNode))
-                    {
-                        if (!neighbour.walkable || closedSet.Contains(neighbour))
-                        {
-                            continue;
-                        }
-
-                        int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenaly;
-                        if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
-                        {
-                            neighbour.gCost = newMovementCostToNeighbour;
-                            neighbour.hCost = GetDistance(neighbour, targetNode);
-                            neighbour.parent = currentNode;
-
-                            if (!openSet.Contains(neighbour))
-                                openSet.Add(neighbour);
-                            else
-                                openSet.UpdateItem(neighbour);
-                        }
-                    }
-                }
+                CalculatePathFinding(startNode, targetNode, ref pathSuccess);
             }
             return pathSuccess;
         }
@@ -139,6 +118,19 @@ namespace Blue.Pathfinding
             Array.Reverse(waypoints);
             return waypoints;
 
+        }
+
+        public int GetNodesFromDistance(Node startNode, Node endNode)
+        {
+            List<Node> path = new List<Node>();
+            Node currentNode = endNode;
+
+            while (currentNode != startNode)
+            {
+                path.Add(currentNode);
+                currentNode = currentNode.parent;
+            }
+            return path.Count;
         }
 
         // Kind of theta fix. No funca con alturas, pero en un plano hace un efecto muuuy similar
@@ -167,6 +159,38 @@ namespace Blue.Pathfinding
             if (dstX > dstY)
                 return 14 * dstY + 10 * (dstX - dstY);
             return 14 * dstX + 10 * (dstY - dstX);
+        }
+
+        public int GetDistanceNodes(Vector3 posA, Vector3 posB)
+        {
+            return GetDistanceNodes(convertPosToNode(posA), convertPosToNode(posB));
+        }
+
+        public int GetDistanceNodes(Node nodeA, Node nodeB)
+        {
+            int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
+            int dstY = Mathf.Abs(nodeA.gridY - nodeB.gridY);
+            return dstX + dstY;
+        }
+
+        public Node convertPosToNode(Vector3 position)
+        {
+            return grid.NodeFromWorldPoint(position);
+        }
+
+        public Node getRandomNodeAtDistance(Node startNode, int distance)
+        {
+            System.Random rand = new System.Random();
+            int yValue = rand.Next(0, distance);
+            int xValue = distance - yValue;
+
+            int newPosX = startNode.gridX + (xValue * (rand.Next(-1, 1) == 0 ? 1:-1));
+            int newPosY = startNode.gridY + (yValue * (rand.Next(-1, 1) == 0 ? 1:-1));
+
+            if (newPosX < grid.gridWorldSize.x && newPosX > 0 && newPosY < grid.gridWorldSize.y && newPosY > 0)
+                return grid.getNodeFromCoordinates(newPosX, newPosY);
+            else
+                return null;
         }
     }
 }

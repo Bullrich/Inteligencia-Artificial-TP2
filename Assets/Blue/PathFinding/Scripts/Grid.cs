@@ -110,6 +110,16 @@ namespace Blue.Pathfinding
             return neighbours;
         }
 
+        public static Vector2 DegreeToVector2(float degree)
+        {
+            return RadianToVector2(degree * Mathf.Deg2Rad);
+        }
+
+        public static Vector2 RadianToVector2(float radian)
+        {
+            return new Vector2(Mathf.Cos(radian), Mathf.Sin(radian));
+        }
+
         public Node NodeFromWorldPoint(Vector3 worldPosition)
         {
             float percentX = (transform.position.x + worldPosition.x + gridWorldSize.x / 2) / gridWorldSize.x;
@@ -124,7 +134,7 @@ namespace Blue.Pathfinding
 
         private void ValidatePaths()
         {
-            Node startNode = grid[Mathf.RoundToInt(grid.GetLength(0) / 2), Mathf.RoundToInt(grid.GetLength(1)/2)];
+            Node startNode = grid[Mathf.RoundToInt(grid.GetLength(0) / 2), Mathf.RoundToInt(grid.GetLength(1) / 2)];
             Pathfinding path = GetComponent<Pathfinding>();
             foreach (Node _n in grid)
             {
@@ -132,6 +142,7 @@ namespace Blue.Pathfinding
                     _n.walkable = path.FoundIfAccesible(startNode, _n);
             }
         }
+
         void OnDrawGizmos()
         {
             Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
@@ -156,20 +167,25 @@ namespace Blue.Pathfinding
                     }
                 }
             }
-            if (!Application.isPlaying && displayGridGizmos)
-            {
-                Vector3 worldBottomLeft = transform.position - Vector3.right * gridWorldSize.x / 2 - Vector3.forward * gridWorldSize.y / 2;
-                //print(worldBottomLeft);
-                for (int x = 0; x < gridWorldSize.x; x++)
-                {
-                    for (int y = 0; y < gridWorldSize.y; y++)
-                    {
-                        Gizmos.color = Color.blue;
-                        Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius) + nodeRadius) + Vector3.forward * (y * (nodeRadius) + nodeRadius);
-                        Gizmos.DrawWireSphere(worldPoint, .25f);
-                    }
-                }
-            }
+            // if (!Application.isPlaying && displayGridGizmos)
+            // {
+            //     Vector3 worldBottomLeft = transform.position - Vector3.right * gridWorldSize.x / 2 - Vector3.forward * gridWorldSize.y / 2;
+            //     //print(worldBottomLeft);
+            //     for (int x = 0; x < gridWorldSize.x; x++)
+            //     {
+            //         for (int y = 0; y < gridWorldSize.y; y++)
+            //         {
+            //             Gizmos.color = Color.blue;
+            //             Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius) + nodeRadius) + Vector3.forward * (y * (nodeRadius) + nodeRadius);
+            //             Gizmos.DrawWireSphere(worldPoint, .25f);
+            //         }
+            //     }
+            // }
+        }
+
+        public Node getNodeFromCoordinates(int x, int y)
+        {
+            return grid[x, y];
         }
 
         [System.Serializable]
