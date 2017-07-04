@@ -12,7 +12,9 @@ namespace Blue.Pathfinding
         public bool displayGridGizmos;
         public LayerMask unwalkableMask;
         public Vector2 gridWorldSize;
-        public float nodeRadius, heightLimit;
+        public float nodeRadius;
+        [Range(0, 90)]
+        public int angleLimit;
         public TerrainType[] walkableRegions;
         LayerMask walkableMask;
         Dictionary<int, int> walkableRegionsDictionary = new Dictionary<int, int>();
@@ -23,13 +25,15 @@ namespace Blue.Pathfinding
         int gridSizeX, gridSizeY;
         private bool hasCreatedGrid = false;
 
-        public int angleLimit;
+        public float heightLimit;
 
         void Awake()
         {
             nodeDiameter = nodeRadius * 2;
             gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
             gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
+
+            //heightLimit = convertAngleToUnityValue(nodeDiameter + nodeRadius, angleLimit);
 
             foreach (TerrainType region in walkableRegions)
             {
@@ -50,11 +54,9 @@ namespace Blue.Pathfinding
             }
         }
 
-        private float getAngleBetweenPoints(Vector2 vec1, Vector2 vec2)
+        float convertAngleToUnityValue(float distance, int angle)
         {
-            Vector2 diference = vec2 - vec1;
-            float sign = (vec2.y < 0) ? -1.0f : 1.0f;
-            return Vector2.Angle(Vector2.right, diference) * sign;
+            return Mathf.Tan(Mathf.Deg2Rad * angle) * distance;
         }
 
         public bool gridCreated()
@@ -118,7 +120,6 @@ namespace Blue.Pathfinding
                     if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY &&
                         Mathf.Abs(node.worldPosition.y - grid[checkX, checkY].worldPosition.y) < heightLimit)
                     {
-                        if (node.worldPosition.y != grid[checkX, checkY].worldPosition.y)
                             neighbours.Add(grid[checkX, checkY]);
                     }
                 }
