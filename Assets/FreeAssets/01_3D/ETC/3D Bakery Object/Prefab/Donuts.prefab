@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 13504354}
   - component: {fileID: 54536200104961022}
   - component: {fileID: 114491802211426256}
+  - component: {fileID: 114746622939640850}
   m_Layer: 0
   m_Name: Donuts
   m_TagString: Food
@@ -121,3 +122,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flyPrefab: {fileID: 11483592, guid: 59f067bfa09a0164bb7335fac6340c06, type: 2}
+--- !u!114 &114746622939640850
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ffe4b2679beb7a43bfa0ee6beb5a38e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noiseClip:
+  - {fileID: 8300000, guid: 343896c79b6ce7c438e8ab4d4c0eb2ed, type: 3}

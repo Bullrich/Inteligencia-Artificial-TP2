@@ -114,10 +114,20 @@ namespace Blue.Pathfinding
                 path.Add(currentNode);
                 currentNode = currentNode.parent;
             }
-            Vector3[] waypoints = SimplifyPath(path);
+            Vector3[] waypoints = quickFix(path);//SimplifyPath(path);
             Array.Reverse(waypoints);
             return waypoints;
 
+        }
+
+        Vector3[] quickFix(List<Node> nodes)
+        {
+            List<Vector3> fix = new List<Vector3>();
+            foreach (Node n in nodes)
+            {
+                fix.Add(n.worldPosition);
+            }
+            return fix.ToArray();
         }
 
         public int GetNodesFromDistance(Node startNode, Node endNode)
@@ -180,17 +190,22 @@ namespace Blue.Pathfinding
 
         public Node getRandomNodeAtDistance(Node startNode, int distance)
         {
-            System.Random rand = new System.Random();
-            int yValue = rand.Next(0, distance);
-            int xValue = distance - yValue;
+            while (true)
+            {
+                System.Random rand = new System.Random();
+                int yValue = rand.Next(0, distance);
+                int xValue = distance - yValue;
 
-            int newPosX = startNode.gridX + (xValue * (rand.Next(-1, 1) == 0 ? 1:-1));
-            int newPosY = startNode.gridY + (yValue * (rand.Next(-1, 1) == 0 ? 1:-1));
+                int newPosX = startNode.gridX + (xValue * (rand.Next(-1, 1) == 0 ? 1 : -1));
+                int newPosY = startNode.gridY + (yValue * (rand.Next(-1, 1) == 0 ? 1 : -1));
 
-            if (newPosX < grid.gridWorldSize.x && newPosX > 0 && newPosY < grid.gridWorldSize.y && newPosY > 0)
-                return grid.getNodeFromCoordinates(newPosX, newPosY);
-            else
-                return null;
+                if (newPosX < grid.gridWorldSize.x && newPosX > 0 && newPosY < grid.gridWorldSize.y && newPosY > 0)
+                {
+                    Node resultNode = grid.getNodeFromCoordinates(newPosX, newPosY);
+                    if (resultNode != null && resultNode.walkable)
+                        return resultNode;
+                }
+            }
         }
     }
 }

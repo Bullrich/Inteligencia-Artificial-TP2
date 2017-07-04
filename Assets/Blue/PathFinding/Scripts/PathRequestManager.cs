@@ -39,7 +39,7 @@ namespace Blue.Pathfinding
             Node startNode = pathfinding.convertPosToNode(pathStart);
             Node randomNode = pathfinding.getRandomNodeAtDistance(startNode, pathLength);
             if(randomNode != null){
-            print(string.Format("Path start: {0}|{1}, pathEnd: {2}|{3}",startNode.gridX,startNode.gridY, randomNode.gridX,randomNode.gridY));
+            //print(string.Format("Path start: {0}|{1}, pathEnd: {2}|{3}",startNode.gridX,startNode.gridY, randomNode.gridX,randomNode.gridY));
             PathRequest newRequest = new PathRequest(startNode, randomNode, callback);
             instance.pathRequestQueue.Enqueue(newRequest);
             instance.TryProcessNext();
@@ -70,7 +70,7 @@ namespace Blue.Pathfinding
             TryProcessNext();
         }
 
-        public static int GetNodesFromPoints(Vector3 startPos, Vector3 endPos)
+        public static int GetDistanceFromPoints(Vector3 startPos, Vector3 endPos)
         {
             return instance.pathfinding.GetDistanceNodes(startPos, endPos);
         }

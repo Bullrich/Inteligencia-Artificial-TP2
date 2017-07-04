@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   noiseClip:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: 483de091403b47443803a013a0e1def4, type: 3}
 --- !u!136 &13607910
 CapsuleCollider:
   m_ObjectHideFlags: 1

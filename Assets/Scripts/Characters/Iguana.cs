@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Blue.Pathfinding;
 using Blue.Fov;
+using Blue.Tree;
 
 [RequireComponent(typeof(FieldOfView))]
 public class Iguana : MonoBehaviour
@@ -17,6 +18,16 @@ public class Iguana : MonoBehaviour
         FollowNoise,
         ReachedDestination
     }
+    public enum State
+    {
+        Patrolling, Following, Seeking, Returning
+    }
+
+    public State currentState;
+    public Input currentInput;
+
+    [Range(3, 50)]
+    public int waypointsInPatrol = 15;
 
     public GameObject[] helmetPrefabs;
     public Transform helmetPos;
@@ -29,16 +40,16 @@ public class Iguana : MonoBehaviour
     CharacterController _controller;
     Animator _animator;
 
-    public Input currentState = Input.TargetNotSeen;
 
     Vector3[] path, tempPath;
-    private int targetIndex, tempIndex;
+    private int pathIndex, tempIndex;
     private Vector3 currentTarget;
 
-    Vector3 _startPatrol, _endPatrol;
-    bool patrollingInversed;
+    bool patrollingInversed, hasAskedForPath;
 
     private FieldOfView _fov;
+
+    private Vector3 soundSrc;
 
 
     protected void Start()
@@ -50,21 +61,92 @@ public class Iguana : MonoBehaviour
         currentTarget = transform.position;
         _fov.ContinueFOV();
         _gizmoColor = Random.ColorHSV();
-        Vector3 targetPosition = new Vector3(15.35f, 6.3f, 12f);
         GetRandomRoute();
     }
 
     void ProcessInput(Input input)
     {
+        if (currentInput == input)
+            return;
+        else
+            currentInput = input;
 
+        switch (input)
+        {
+            case Input.TargetNotSeen:
+                tempPath = null;
+                StartCoroutine(GetRoute(path[pathIndex]));
+                currentState = State.Returning;
+                break;
+            case Input.TargetSeen:
+                Scream();
+                currentState = State.Seeking;
+                break;
+            case Input.FollowNoise:
+                tempPath = null;
+                StartCoroutine(GetRoute(currentTarget));
+                currentState = State.Following;
+                break;
+            case Input.ReachedDestination:
+                if (currentState == State.Returning)
+                    currentState = State.Patrolling;
+                else if (currentState == State.Following)
+                {
+                    currentState = State.Returning;
+                    tempPath = null;
+                    StartCoroutine(GetRoute(path[pathIndex]));
+                }
+                break;
+        }
     }
 
-
-
-    void CreatePatrolPath(MapNode startNode)
+    private void Behavior()
     {
-
+        switch (currentState)
+        {
+            case State.Following:
+                GoToDestination();
+                break;
+            case State.Patrolling:
+                Patrolling();
+                break;
+            case State.Returning:
+                GoToDestination();
+                break;
+            case State.Seeking:
+                Transform target = _fov.getTarget();
+                if (target != null)
+                    MoveToPoint(target.position);
+                else
+                    ProcessInput(Input.TargetNotSeen);
+                break;
+        }
     }
+
+    private void GoToDestination()
+    {
+        if (tempPath == null)
+            return;
+        //failsafe
+        else if (tempPath.Length == 0)
+            ProcessInput(Input.ReachedDestination);
+
+        try
+        {
+            if (hasReachedDestination(tempPath[tempPath.Length - 1]))
+            {
+                ProcessInput(Input.ReachedDestination);
+                tempPath = null;
+            }
+            FollowPath(tempPath, ref tempIndex);
+        }
+        catch (System.Exception e)
+        {
+            Debug.Log(string.Format("State: {0}, input: {1}, path:{2}/{3}", currentState, currentInput, tempIndex, tempPath.Length));
+            Debug.LogError(e);
+        }
+    }
+
 
     int CalculateRandomRank()
     {
@@ -103,26 +185,29 @@ public class Iguana : MonoBehaviour
         }
     }
 
-    public void FoundPlayer(Vector3 playerPos)
+    public void HeardSound(Vector3 _soundSrc)
     {
-        GetRoute(playerPos);
+        currentTarget = _soundSrc;
+        ProcessInput(Input.FollowNoise);
     }
 
     void Scream()
     {
         _animator.SetTrigger("Hit");
-        GameManager.instance.FoundPlayer();
+        GameManager.instance.MadeSound(_fov.getTarget().position);
         //ALUM: Generar "ruido"
 
     }
 
     private void GetRandomRoute()
     {
-        GetRoute(new Vector3(transform.position.x + Random.Range(-10, 10), 0, transform.position.y + Random.Range(-10, 10)));
+        PathRequestManager.RequestRandomPath(transform.position, waypointsInPatrol, OnPathFound);
     }
 
-    private void GetRoute(Vector3 targetPosition)
+    private IEnumerator GetRoute(Vector3 targetPosition)
     {
+        // Wait until we have our last path assigned so that we don't collapse the queue
+        yield return new WaitUntil(() => !hasAskedForPath);
         PathRequestManager.RequestPath(transform.position, targetPosition, OnPathFound);
     }
 
@@ -133,53 +218,35 @@ public class Iguana : MonoBehaviour
             if (path == null)
             {
                 path = newPath;
-                currentState = Input.TargetNotSeen;
-                targetIndex = 0;
+                pathIndex = 0;
+                ProcessInput(Input.TargetNotSeen);
             }
             else
             {
                 tempPath = newPath;
                 tempIndex = 0;
-                currentState = Input.FollowNoise;
             }
         }
         else
             GetRandomRoute();
+        hasAskedForPath = false;
     }
+
+
 
     // Update is called once per frame
     protected void Update()
     {
         //ALUM: Alimentar la FSM con sensores
-        if (_fov.hasTargetInView()){
-            currentState = Input.TargetSeen;
-            Scream();
+        if (_fov.hasTargetInView())
+        {
+            ProcessInput(Input.TargetSeen);
         }
 
         //ALUM: Moverse acorde al estado.
         Vector3 delta = Vector3.zero;
-        switch (currentState)
-        {
-            case Input.TargetNotSeen:
-                Patrolling();
-                //delta = Vector3.one;
-                break;
-            case Input.TargetSeen:
-                Transform target = _fov.getTarget();
-                if (target != null)
-                    MoveToPoint(target.position);
-                else
-                    currentState = Input.TargetNotSeen;
-                break;
-            case Input.FollowNoise:
-                if (tempPath != null)
-                    FollowPath(tempPath, ref tempIndex);
-                if (tempIndex >= tempPath.Length)
-                    currentState = Input.TargetNotSeen;
-                break;
-            case Input.ReachedDestination:
-                break;
-        }
+
+        Behavior();
 
 
         if (delta.sqrMagnitude > 0.1f)
@@ -221,22 +288,27 @@ public class Iguana : MonoBehaviour
         }
         catch (System.Exception e)
         {
+            Debug.LogError(string.Format("State: {0}, index: {1}/{2}", currentState, currentIndex, currentPath.Length));
             Debug.LogError(e);
-            Debug.LogWarning(string.Format("Path is null: {0}, currentIndex: {1}", currentPath != null, currentIndex));
         }
+    }
+
+    public bool hasReachedDestination(Vector3 destination)
+    {
+        return Vector3.Distance(destination, transform.position) <= 1.3f;
     }
 
     private void Patrolling()
     {
         if (path == null)
             return;
-        if (targetIndex >= path.Length || targetIndex < 0)
+        if (pathIndex >= path.Length || pathIndex < 0)
         {
             patrollingInversed = !patrollingInversed;
-            targetIndex += (patrollingInversed ? -1 : 1);
+            pathIndex += (patrollingInversed ? -1 : 1);
         }
 
-        FollowPath(path, ref targetIndex, !patrollingInversed);
+        FollowPath(path, ref pathIndex, !patrollingInversed);
     }
 
     void OnDrawGizmos()
@@ -247,21 +319,23 @@ public class Iguana : MonoBehaviour
         Gizmos.DrawSphere(transform.position + offset, 0.5f);   //Esfera sobre la iguana para saber el color asociado a la misma
 
         //ALUM: Dibujar la ruta de patrullaje o la que se está siguiendo de momento. Utilizar "offset" para no superponer los gizmos.
-        Vector3[] _path = (currentState == Input.TargetNotSeen ? path : tempPath);
-        int _index = (currentState == Input.TargetNotSeen ? targetIndex : tempIndex);
-        if (_path != null)
+        if (currentState == State.Following || currentState == State.Patrolling || currentState == State.Returning)
         {
-            for (int i = 0; i < _path.Length; i++)
+            Vector3[] _path = (currentState == State.Patrolling ? path : tempPath);
+            int _index = (currentState == State.Patrolling ? pathIndex : tempIndex);
+            if (_path != null)
             {
-                Gizmos.DrawCube(_path[i], Vector3.one);
-
-                if (i == _index)
+                for (int i = 0; i < _path.Length; i++)
                 {
-                    Gizmos.DrawLine(transform.position, _path[i]);
+                    Gizmos.DrawCube(_path[i], Vector3.one);
+
+                    if (i == _index)
+                    {
+                        Gizmos.DrawLine(transform.position, _path[i]);
+                    }
                 }
             }
         }
-
     }
 
 }

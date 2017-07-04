@@ -21,6 +21,9 @@ namespace Blue.Pathfinding
 
         float nodeDiameter;
         int gridSizeX, gridSizeY;
+        private bool hasCreatedGrid = false;
+
+        public int angleLimit;
 
         void Awake()
         {
@@ -36,6 +39,7 @@ namespace Blue.Pathfinding
 
             CreateGrid();
             ValidatePaths();
+            hasCreatedGrid = true;
         }
 
         public int MaxSize
@@ -44,6 +48,18 @@ namespace Blue.Pathfinding
             {
                 return gridSizeX * gridSizeY;
             }
+        }
+
+        private float getAngleBetweenPoints(Vector2 vec1, Vector2 vec2)
+        {
+            Vector2 diference = vec2 - vec1;
+            float sign = (vec2.y < 0) ? -1.0f : 1.0f;
+            return Vector2.Angle(Vector2.right, diference) * sign;
+        }
+
+        public bool gridCreated()
+        {
+            return hasCreatedGrid;
         }
 
         public void CreateGrid()
@@ -102,22 +118,13 @@ namespace Blue.Pathfinding
                     if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY &&
                         Mathf.Abs(node.worldPosition.y - grid[checkX, checkY].worldPosition.y) < heightLimit)
                     {
-                        neighbours.Add(grid[checkX, checkY]);
+                        if (node.worldPosition.y != grid[checkX, checkY].worldPosition.y)
+                            neighbours.Add(grid[checkX, checkY]);
                     }
                 }
             }
 
             return neighbours;
-        }
-
-        public static Vector2 DegreeToVector2(float degree)
-        {
-            return RadianToVector2(degree * Mathf.Deg2Rad);
-        }
-
-        public static Vector2 RadianToVector2(float radian)
-        {
-            return new Vector2(Mathf.Cos(radian), Mathf.Sin(radian));
         }
 
         public Node NodeFromWorldPoint(Vector3 worldPosition)
@@ -143,6 +150,7 @@ namespace Blue.Pathfinding
             }
         }
 
+        List<Node> gizmosNodes;
         void OnDrawGizmos()
         {
             Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
@@ -155,8 +163,9 @@ namespace Blue.Pathfinding
 
                         Gizmos.color = (n.walkable) ? Color.white : Color.red;
                         Gizmos.DrawWireSphere(n.worldPosition, .25f);
-                        var neighboors = GetNeighbours(n);
-                        foreach (Node neighbor in neighboors)
+                        if (gizmosNodes == null)
+                            gizmosNodes = GetNeighbours(n);
+                        foreach (Node neighbor in gizmosNodes)
                         {
                             if (neighbor.walkable)
                             {
@@ -167,25 +176,42 @@ namespace Blue.Pathfinding
                     }
                 }
             }
-            // if (!Application.isPlaying && displayGridGizmos)
-            // {
-            //     Vector3 worldBottomLeft = transform.position - Vector3.right * gridWorldSize.x / 2 - Vector3.forward * gridWorldSize.y / 2;
-            //     //print(worldBottomLeft);
-            //     for (int x = 0; x < gridWorldSize.x; x++)
-            //     {
-            //         for (int y = 0; y < gridWorldSize.y; y++)
-            //         {
-            //             Gizmos.color = Color.blue;
-            //             Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius) + nodeRadius) + Vector3.forward * (y * (nodeRadius) + nodeRadius);
-            //             Gizmos.DrawWireSphere(worldPoint, .25f);
-            //         }
-            //     }
-            // }
+            if (!Application.isPlaying && displayGridGizmos)
+            {
+                Vector3 worldBottomLeft = transform.position - Vector3.right * gridWorldSize.x / 2 - Vector3.forward * gridWorldSize.y / 2;
+                //print(worldBottomLeft);
+                for (int x = 0; x < gridWorldSize.x; x++)
+                {
+                    for (int y = 0; y < gridWorldSize.y; y++)
+                    {
+                        Gizmos.color = Color.blue;
+                        Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * (nodeRadius) + nodeRadius) + Vector3.forward * (y * (nodeRadius) + nodeRadius);
+                        Gizmos.DrawWireSphere(worldPoint, .25f);
+                    }
+                }
+            }
+        }
+
+        public Node FindRandomWalkableNode()
+        {
+            while (true)
+            {
+                Node newNode = grid[Random.Range(0, gridSizeX), Random.Range(0, gridSizeY)];
+                if (newNode.walkable)
+                    return newNode;
+            }
         }
 
         public Node getNodeFromCoordinates(int x, int y)
         {
-            return grid[x, y];
+            try
+            {
+                return grid[x, y];
+            }
+            catch (System.Exception e)
+            {
+                return null;
+            }
         }
 
         [System.Serializable]

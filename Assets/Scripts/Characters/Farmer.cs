@@ -27,7 +27,7 @@ public class Farmer : MonoBehaviour
             _controller.SimpleMove(transform.forward * motion);
             _animator.SetFloat("Walk", motion);
             if (Input.GetKeyDown(KeyCode.K))
-                GameManager.instance.FoundPlayer();
+                GameManager.instance.MadeSound(transform.position);
         }
     }
 
@@ -37,14 +37,14 @@ public class Farmer : MonoBehaviour
         transform.position = _spawnPoint;
     }
 
-    void OnTriggerEnter(Collider collider)
+    void OnCollisionEnter(Collision collision)
     {
-        if (collider.tag == "Branch")
-            GameManager.instance.FoundPlayer();
-        else if (collider.tag == "Food")
-            collider.gameObject.SetActive(false);
-        else if (collider.gameObject.layer == LayerMask.NameToLayer("Iguanas"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Iguanas"))
             Kill();
+        else if (collision.gameObject.GetComponent<NoiseSource>() != null){
+            GameManager.instance.MadeSound(transform.position);
+            collision.gameObject.GetComponent<NoiseSource>().Play();
+        }
 
         //ALUM: Manejar interacciones
 
